@@ -1,0 +1,6 @@
+# STRICT BEHAVIOR RULES
+1. THINK BEFORE ACTING: Always analyze the entire component structure and CSS hierarchy before editing any code.
+2. NO PARTIAL CODE: Never replace files with placeholder code or truncated logic. Always provide fully functional code.
+3. CSS ANIMATIONS PREFERENCE: Prefer modern CSS View Timeline and native Sticky positioning over heavy/buggy JS scroll hooks.
+4. PRESERVE GLASSMORPHISM: Never change dark translucent backgrounds (bg-neutral-900/50, backdrop-blur) to solid black.
+5. EXPLAIN PLAN BRIEFLY: Keep chat responses extremely concise. Focus 90% of your tokens on code accuracy.

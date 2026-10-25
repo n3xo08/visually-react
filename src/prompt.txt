@@ -1,0 +1,110 @@
+# ⚠️ CRITICAL TASK: Fix "Uslugi" Stacking Cards Animation (URGENT)
+
+The current implementation of the "Uslugi" section animation is broken and needs to be rewritten immediately based on strict Scroll-Driven Animation principles. The issues shown in the current visual feedback are unacceptable: cards jump to black, animation triggers too late, and the 3D stacking effect is completely missing.
+
+### 🛑 CURRENT BUGS (Fix All):
+1.  **Late Trigger:** The animation triggers almost only when the cards are at the very top of the screen (as seen in image_9.png). It MUST start triggering as soon as the section enters the viewport (bottom 20%).
+2.  **Opacity Break:** Cards instantly become full black (image_7.png, image_9.png) instead of smoothly animating from opaque glass to transparent glass.
+3.  **Missing Stacking:** The 3D "on top of each other" stacking effect (as requested from "robiemy social media") is not present.
+
+### 🛠️ MANDATORY ARCHITECTURE CHANGE: Use Pure Tailwind + CSS View() Timeline
+
+To ensure maximum performance and reliable triggers, do NOT rely on standard Motion/GSAP scroll hooks (which use expensive JS scroll events). Instead, **rewrite the section using standard CSS View-driven animations.** This is now natively supported in modern browsers and much more robust.
+
+#### Step 1: CSS Setup (Add to your root CSS file, e.g., index.css):
+Implement this logic using standard CSS and link it via Tailwind classes:
+
+```css
+/* 1. Define the base stacking container */
+.uslugi-stacking-container {
+  display: grid;
+  place-items: center;
+  gap: 0; /* Cards must touch to stack */
+  grid-template-columns: 1fr;
+}
+
+/* 2. Configure the View Timeline on the entire section */
+.uslugi-section {
+  view-timeline-name: --stacking-cards;
+  view-timeline-axis: block;
+}
+
+/* 3. Base style for the Cards (Already look good, maintain glassmorphism) */
+.uslugi-glass-card {
+  --start-scroll: 20%;
+  --end-scroll: 80%;
+  
+  /* Apply animation linked to the timeline */
+  animation: stack-and-fade linear both;
+  animation-timeline: --stacking-cards;
+  
+  /* Use Tailwind for dynamic range (ensure these classes exist) */
+  animation-range: entry calc(var(--start-scroll)) exit calc(var(--end-scroll));
+  
+  /* Ensure 3D context for stacking */
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* 4. The Animation Logic (3D Stack + Smooth Fade) */
+@keyframes stack-and-fade {
+  from {
+    /* Entered View: Opaque, flat, and slides up */
+    transform: translateY(100px) scale(0.9) translateZ(0);
+    opacity: 1;
+  }
+  to {
+    /* Exiting View: Fully stacked, slightly transparent, scaled down, and translated deeper in 3D */
+    transform: translateY(0px) scale(0.95) translateZ(-50px);
+    opacity: 0.1; /* Keep slightly visible for the effect */
+  }
+}
+
+/* 5. Handle Stacking Index (Required for 'on top of' effect) */
+.uslugi-glass-card:nth-child(1) { z-index: 10; }
+.uslugi-glass-card:nth-child(2) { z-index: 9; }
+.uslugi-glass-card:nth-child(3) { z-index: 8; }
+.uslugi-glass-card:nth-child(4) { z-index: 7; }
+Step 2: Component Implementation (src/components/BentoGrid.jsx - or equivalent):
+Update your Uslugi mapping to apply these CSS classes via Tailwind.
+
+JavaScript
+// src/components/BentoGrid.jsx (or Uslugi component)
+
+return (
+  <section className="uslugi-section py-24 px-4 bg-transparent min-h-screen">
+    <div className="container mx-auto">
+      {/* Header section... */}
+      
+      {/* 1. Apply the stacking container class */}
+      <div className="uslugi-stacking-container mt-16 max-w-4xl mx-auto">
+        {uslugiData.map((item, index) => (
+          {/* 2. Apply the dynamic card class with the linked animation */}
+          <div 
+            key={item.id} 
+            className="uslugi-glass-card bg-neutral-900/50 backdrop-blur-xl rounded-3xl p-8 mb-[-50px] last:mb-0 border border-indigo-900/40 shadow-[0_8px_30px_rgb(0,0,0,0.4)]"
+            {/* Optional: Add slight rotation based on index for the 'robiemy social media' feel */}
+            style={{ '--index': index }}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <span className="text-5xl font-mono font-bold text-neutral-700/60">{item.number}</span>
+              <img src={item.icon} alt={item.title} className="w-10 h-10" />
+            </div>
+            <h3 className="text-3xl font-bold mb-4 text-white">{item.title}</h3>
+            <p className="text-neutral-300 text-lg leading-relaxed">{item.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+🚦 Summary of Changes:
+NO more broken JS scroll handlers.
+
+Animation triggers based on entry/exit percentage of the section.
+
+No more jumping to black.
+
+True 3D stacking effect implemented.
+
+Implement this structure immediately without partial edits. This is the last chance to get this right.
